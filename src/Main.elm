@@ -95,12 +95,55 @@ viewGrid =
     el [ centerX, centerY ] (text "Grid")
 
 
+type Keyboard
+    = Key Char
+    | KeyBackspace
+    | KeyEnter
+
+
 viewKeyboardArea =
     el [ bgPink, width fill, height (fillPortion 1) ] viewKeyboard
 
 
 viewKeyboard =
-    el [ centerX, centerY ] (text "Keyboard")
+    column [ centerX, alignBottom, spacing 5 ]
+        [ viewKeyboardRow (List.map Key (String.toList "QWERTYUIOP"))
+        , viewKeyboardRow (List.map Key (String.toList "ASDFGHJKL"))
+        , viewKeyboardRow ((KeyEnter :: List.map Key (String.toList "ZXCVBNM")) ++ [ KeyBackspace ])
+        ]
+
+
+viewKeyWidth k =
+    case k of
+        Key c ->
+            43
+
+        _ ->
+            65
+
+
+viewKeyString k =
+    case k of
+        Key c ->
+            String.fromChar c
+
+        KeyEnter ->
+            "INVIO"
+
+        KeyBackspace ->
+            "<-"
+
+
+viewMakeButton : Keyboard -> Element msg
+viewMakeButton k =
+    el [ bgCyan, height (px 58), width (px (viewKeyWidth k)) ]
+        (el [ centerX, centerY ] (text (viewKeyString k)))
+
+
+viewKeyboardRow : List Keyboard -> Element msg
+viewKeyboardRow keys =
+    row [ spacing 5, centerX ]
+        (List.map viewMakeButton keys)
 
 
 
