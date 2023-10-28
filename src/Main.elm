@@ -92,7 +92,41 @@ viewGridArea =
 
 
 viewGrid =
-    el [ centerX, centerY ] (text "Grid")
+    column [ centerX, centerY, spacing 5 ]
+        [ viewTileRow
+        , viewTileRow
+        , viewTileRow
+        , viewTileRow
+        , viewTileRow
+        , viewTileRow
+        ]
+
+
+viewTileRow =
+    row [ spacing 5 ]
+        [ viewTile
+        , viewTile
+        , viewTile
+        , viewTile
+        , viewTile
+        ]
+
+
+viewTile =
+    el
+        [ width (px 62)
+        , Border.color colorGray
+        , Border.width 2
+        , height (px 62)
+        , centerX
+        , centerY
+        , bgPink
+        ]
+        viewChar
+
+
+viewChar =
+    el [ centerX, centerY ] (text "A")
 
 
 viewKeyboardArea =
@@ -101,6 +135,10 @@ viewKeyboardArea =
 
 viewKeyboard =
     el [ centerX, centerY ] (text "Keyboard")
+
+
+colorGray =
+    rgb255 211 214 218
 
 
 
