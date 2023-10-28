@@ -24,7 +24,10 @@ type alias Model =
 
 init : Model
 init =
-    { guesses = []
+    { guesses = [
+        ['A', 'B', 'C', 'D', 'E']
+        ,['A', 'B', 'C']
+    ]
     , solution = []
     }
 
@@ -57,7 +60,7 @@ view model =
     layout [ width fill, height fill ]
         (column [ width (px 500), height fill, centerX, bgCyan ]
             [ viewHeader
-            , viewGridArea
+            , viewGridArea model
             , viewKeyboardArea
             ]
         )
@@ -87,32 +90,38 @@ viewHeaderButton =
     el [ alignRight, bgPink ] (text "Button")
 
 
-viewGridArea =
-    el [ bgYellow, width fill, height (fillPortion 2) ] viewGrid
+viewGridArea model =
+    el [ bgYellow, width fill, height (fillPortion 2) ] (viewGrid model)
 
 
-viewGrid =
+viewGrid model =
     column [ centerX, centerY, spacing 5 ]
-        [ viewTileRow
-        , viewTileRow
-        , viewTileRow
-        , viewTileRow
-        , viewTileRow
-        , viewTileRow
+    {--
+        [ viewTileRow [ 'A', 'B', 'C', 'D', 'E' ]
+        , viewTileRow [ 'A', 'B', 'C' ]
+        , viewTileRow []
+        , viewTileRow []
+        , viewTileRow []
+        , viewTileRow []
         ]
+    -}
+    (List.map viewTileRow
+        (List.take 6
+            (model.guesses ++ (List.repeat 6 []))
+        )
+    )
 
 
-viewTileRow =
+viewTileRow word =
     row [ spacing 5 ]
-        [ viewTile
-        , viewTile
-        , viewTile
-        , viewTile
-        , viewTile
-        ]
+        (List.map viewTile
+            (List.take 5
+                (word ++ (List.repeat 5  ' '))
+            )
+        )
 
 
-viewTile =
+viewTile char =
     el
         [ width (px 62)
         , Border.color colorGray
@@ -122,11 +131,11 @@ viewTile =
         , centerY
         , bgPink
         ]
-        viewChar
+        (viewChar char)
 
 
-viewChar =
-    el [ centerX, centerY ] (text "A")
+viewChar char =
+    el [ centerX, centerY ] (text (String.fromChar char))
 
 
 type Keyboard
