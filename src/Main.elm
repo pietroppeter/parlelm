@@ -17,12 +17,16 @@ main =
 
 
 type alias Model =
-    List (List Char)
+    { guesses : List (List Char)
+    , solution : List Char
+    }
 
 
 init : Model
 init =
-    []
+    { guesses = []
+    , solution = []
+    }
 
 
 type Msg
