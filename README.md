@@ -13,12 +13,15 @@ I am a beginner in both Elm and functional languages.
 
 Started at [![Open Source Saturday](https://img.shields.io/badge/%E2%9D%A4%EF%B8%8F-open%20source%20saturday-F64060.svg)](https://www.meetup.com/it-IT/Open-Source-Saturday-Milano/)
 
-Help for a NixOS based Elm setup by @kristoff-it.
 Help on Elm by @akiross.
+
+We also tried to have a NixOS based Elm setup with help by @kristoff-it but it did not work out.
+In the end it is actually very simple to just setup elm with the installer.
 
 ## plan
 
-- [ ] rendering with elm-ui
+- [ ] view (with elm-ui)
+  - [x] basic layout (grid and keyboard)
+  - [ ] color the words
 - [ ] logic of game and updates
 - [ ] side effects (local storage, current date)
-
