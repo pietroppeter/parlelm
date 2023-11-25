@@ -1,13 +1,10 @@
 module Main exposing (..)
 
--- Element, alignRight, centerX, centerY, el, fill, mouseOver, padding, px, rgb255, row, spacing, text, width)
-
 import Browser
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
-import Element.Input as Input
 import Html exposing (Html)
 import Html.Events exposing (onClick)
 
@@ -24,10 +21,10 @@ type alias Model =
 
 init : Model
 init =
-    { guesses = [
-        ['A', 'B', 'C', 'D', 'E']
-        ,['A', 'B', 'C']
-    ]
+    { guesses =
+        [ [ 'A', 'B', 'C', 'D', 'E' ]
+        , [ 'A', 'B', 'C' ]
+        ]
     , solution = []
     }
 
@@ -43,16 +40,8 @@ update msg model =
     model
 
 
-bgYellow =
-    Background.color (rgb255 255 255 240)
 
-
-bgCyan =
-    Background.color (rgb255 240 255 255)
-
-
-bgPink =
-    Background.color (rgb255 255 240 240)
+--- VIEW
 
 
 view : Model -> Html Msg
@@ -83,59 +72,154 @@ viewHeaderBurger =
 
 
 viewHeaderTitle =
-    el [ centerX, bgYellow ] (text "Title")
+    el [ centerX, bgYell ] (text "Title")
 
 
 viewHeaderButton =
     el [ alignRight, bgPink ] (text "Button")
 
 
+
+---  GRID
+
+
+type Match
+    = No --grey
+    | Exact --green
+    | Almost --yellow
+    | Unmatched
+
+
+type alias MatchedTile =
+    { char : Char
+    , match : Match
+    }
+
+
+type Tile
+    = EmptyTile
+    | FilledTile MatchedTile
+
+
 viewGridArea model =
-    el [ bgYellow, width fill, height (fillPortion 2) ] (viewGrid model)
+    el [ bgYell, width fill, height (fillPortion 2) ] (viewGrid model)
+
+
+emptyTile =
+    EmptyTile
+
+
+defaultWord : List Tile
+defaultWord =
+    [ FilledTile { char = 'A', match = No }
+    , FilledTile { char = 'B', match = Exact }
+    , FilledTile { char = 'C', match = Almost }
+    , FilledTile { char = 'D', match = Unmatched }
+    , EmptyTile
+    ]
 
 
 viewGrid model =
     column [ centerX, centerY, spacing 5 ]
-    {--
-        [ viewTileRow [ 'A', 'B', 'C', 'D', 'E' ]
-        , viewTileRow [ 'A', 'B', 'C' ]
-        , viewTileRow []
-        , viewTileRow []
-        , viewTileRow []
-        , viewTileRow []
-        ]
-    -}
-    (List.map viewTileRow
-        (List.take 6
-            (model.guesses ++ (List.repeat 6 []))
+        (List.map viewTileRow
+            (List.repeat 6 defaultWord)
+         {--
+            (List.take 6
+                (model.guesses ++ List.repeat 6 [])
+            )
+-}
         )
-    )
 
 
 viewTileRow word =
     row [ spacing 5 ]
         (List.map viewTile
             (List.take 5
-                (word ++ (List.repeat 5  ' '))
+                (word ++ List.repeat 5 emptyTile)
             )
         )
 
 
-viewTile char =
+tileBgColor tile =
+    case tile of
+        EmptyTile ->
+            bgWhite
+
+        FilledTile { match } ->
+            case match of
+                No ->
+                    bgDarkGray
+
+                Exact ->
+                    bgGreen
+
+                Almost ->
+                    bgYellow
+
+                Unmatched ->
+                    bgWhite
+
+
+tileBorderColor tile =
+    case tile of
+        EmptyTile ->
+            colorGray
+
+        FilledTile { match } ->
+            case match of
+                No ->
+                    colorDarkGray
+
+                Exact ->
+                    colorGreen
+
+                Almost ->
+                    colorYellow
+
+                Unmatched ->
+                    colorBlack
+
+
+tileFontColor match =
+    case match of
+        No ->
+            colorWhite
+
+        Exact ->
+            colorWhite
+
+        Almost ->
+            colorWhite
+
+        Unmatched ->
+            colorBlack
+
+
+viewTile tile =
     el
         [ width (px 62)
-        , Border.color colorGray
+        , Border.color (tileBorderColor tile)
         , Border.width 2
         , height (px 62)
         , centerX
         , centerY
-        , bgPink
+        , tileBgColor tile
         ]
-        (viewChar char)
+        (viewTileChar tile)
 
 
-viewChar char =
-    el [ centerX, centerY ] (text (String.fromChar char))
+viewTileChar : Tile -> Element Msg
+viewTileChar tile =
+    case tile of
+        EmptyTile ->
+            el [ centerX, centerY ] (text (String.fromChar ' '))
+
+        FilledTile ftile ->
+            el [ centerX, centerY, Font.color (tileFontColor ftile.match), Font.size 32, Font.bold ] (text (String.fromChar ftile.char))
+
+
+
+-- KEYBOARD
 
 
 type Keyboard
@@ -158,7 +242,7 @@ viewKeyboard =
 
 viewKeyWidth k =
     case k of
-        Key c ->
+        Key _ ->
             43
 
         _ ->
@@ -189,8 +273,68 @@ viewKeyboardRow keys =
         (List.map viewMakeButton keys)
 
 
+
+--- COLORS
+
+
 colorGray =
     rgb255 211 214 218
+
+
+colorDarkGray =
+    rgb255 134 136 138
+
+
+colorWhite =
+    rgb255 255 255 255
+
+
+colorBlack =
+    rgb255 33 33 33
+
+
+colorGreen =
+    rgb255 106 170 100
+
+
+colorYellow =
+    rgb255 181 159 59
+
+
+bgGray =
+    Background.color colorGray
+
+
+bgDarkGray =
+    Background.color colorDarkGray
+
+
+bgWhite =
+    Background.color colorWhite
+
+
+bgGreen =
+    Background.color colorGreen
+
+
+bgYellow =
+    Background.color colorYellow
+
+
+
+-- colors used to debug UI
+
+
+bgYell =
+    Background.color (rgb255 255 255 240)
+
+
+bgCyan =
+    Background.color (rgb255 240 255 255)
+
+
+bgPink =
+    Background.color (rgb255 255 240 240)
 
 
 
