@@ -20,10 +20,10 @@ type alias Model =
 
 init : Model
 init =
-    { guesses = [
-        ['A', 'B', 'C', 'D', 'E']
-        ,['A', 'B', 'C']
-    ]
+    { guesses =
+        [ [ 'A', 'B', 'C', 'D', 'E' ]
+        , [ 'A', 'B', 'C' ]
+        ]
     , solution = []
     }
 
@@ -92,7 +92,7 @@ viewGridArea model =
 
 viewGrid model =
     column [ centerX, centerY, spacing 5 ]
-    {--
+        {--
         [ viewTileRow [ 'A', 'B', 'C', 'D', 'E' ]
         , viewTileRow [ 'A', 'B', 'C' ]
         , viewTileRow []
@@ -100,19 +100,19 @@ viewGrid model =
         , viewTileRow []
         , viewTileRow []
         ]
-    -}
-    (List.map viewTileRow
-        (List.take 6
-            (model.guesses ++ (List.repeat 6 []))
+-}
+        (List.map viewTileRow
+            (List.take 6
+                (model.guesses ++ List.repeat 6 [])
+            )
         )
-    )
 
 
 viewTileRow word =
     row [ spacing 5 ]
         (List.map viewTile
             (List.take 5
-                (word ++ (List.repeat 5  ' '))
+                (word ++ List.repeat 5 ' ')
             )
         )
 
