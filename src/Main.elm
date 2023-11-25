@@ -4,6 +4,7 @@ import Browser
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
+import Element.Font as Font
 import Html exposing (Html)
 import Html.Events exposing (onClick)
 
@@ -147,7 +148,7 @@ tileBgColor tile =
         FilledTile { match } ->
             case match of
                 No ->
-                    bgGray
+                    bgDarkGray
 
                 Exact ->
                     bgGreen
@@ -167,7 +168,7 @@ tileBorderColor tile =
         FilledTile { match } ->
             case match of
                 No ->
-                    colorGray
+                    colorDarkGray
 
                 Exact ->
                     colorGreen
@@ -177,6 +178,22 @@ tileBorderColor tile =
 
                 Unmatched ->
                     colorBlack
+
+
+tileFontColor match =
+    case match of
+        No ->
+            colorWhite
+
+        Exact ->
+            colorWhite
+
+        Almost ->
+            colorWhite
+
+        Unmatched ->
+            colorBlack
+
 
 viewTile tile =
     el
@@ -198,7 +215,7 @@ viewTileChar tile =
             el [ centerX, centerY ] (text (String.fromChar ' '))
 
         FilledTile ftile ->
-            el [ centerX, centerY ] (text (String.fromChar ftile.char))
+            el [ centerX, centerY, Font.color (tileFontColor ftile.match), Font.size 32, Font.bold ] (text (String.fromChar ftile.char))
 
 
 
@@ -264,12 +281,17 @@ colorGray =
     rgb255 211 214 218
 
 
+colorDarkGray =
+    rgb255 134 136 138
+
+
 colorWhite =
     rgb255 255 255 255
 
 
 colorBlack =
     rgb255 33 33 33
+
 
 colorGreen =
     rgb255 106 170 100
@@ -281,6 +303,10 @@ colorYellow =
 
 bgGray =
     Background.color colorGray
+
+
+bgDarkGray =
+    Background.color colorDarkGray
 
 
 bgWhite =
