@@ -149,7 +149,7 @@ viewKeyboardArea =
 
 
 viewKeyboard =
-    column [ centerX, alignBottom, spacing 5 ]
+    column [ centerX, centerY, spacing 5 ]
         [ viewKeyboardRow (List.map Key (String.toList "QWERTYUIOP"))
         , viewKeyboardRow (List.map Key (String.toList "ASDFGHJKL"))
         , viewKeyboardRow ((KeyEnter :: List.map Key (String.toList "ZXCVBNM")) ++ [ KeyBackspace ])
