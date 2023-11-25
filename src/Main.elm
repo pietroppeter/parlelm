@@ -104,15 +104,17 @@ viewGridArea model =
     el [ bgYell, width fill, height (fillPortion 2) ] (viewGrid model)
 
 
-emptyTile = EmptyTile
+emptyTile =
+    EmptyTile
+
 
 defaultWord : List Tile
-defaultWord = [
-    FilledTile { char = 'A', match = No},
-    FilledTile { char = 'B', match = Exact},
-    FilledTile { char = 'C', match = Almost},
-    FilledTile { char = 'D', match = Unmatched},
-    EmptyTile
+defaultWord =
+    [ FilledTile { char = 'A', match = No }
+    , FilledTile { char = 'B', match = Exact }
+    , FilledTile { char = 'C', match = Almost }
+    , FilledTile { char = 'D', match = Unmatched }
+    , EmptyTile
     ]
 
 
@@ -120,7 +122,7 @@ viewGrid model =
     column [ centerX, centerY, spacing 5 ]
         (List.map viewTileRow
             (List.repeat 6 defaultWord)
-{--
+         {--
             (List.take 6
                 (model.guesses ++ List.repeat 6 [])
             )
@@ -139,13 +141,23 @@ viewTileRow word =
 
 tileBgColor tile =
     case tile of
-        EmptyTile -> bgWhite
+        EmptyTile ->
+            bgWhite
+
         FilledTile { char, match } ->
             case match of
-                No -> bgGray
-                Exact -> bgGreen
-                Almost -> bgYellow
-                Unmatched -> bgWhite
+                No ->
+                    bgGray
+
+                Exact ->
+                    bgGreen
+
+                Almost ->
+                    bgYellow
+
+                Unmatched ->
+                    bgWhite
+
 
 viewTile tile =
     el
@@ -165,8 +177,10 @@ viewTileChar tile =
     case tile of
         EmptyTile ->
             el [ centerX, centerY ] (text (String.fromChar ' '))
+
         FilledTile ftile ->
             el [ centerX, centerY ] (text (String.fromChar ftile.char))
+
 
 
 -- KEYBOARD
@@ -227,21 +241,37 @@ viewKeyboardRow keys =
 --- COLORS
 
 
-colorGray = rgb255 211 214 218
+colorGray =
+    rgb255 211 214 218
 
-colorWhite = rgb255 255 255 255
 
-colorGreen = rgb255 106 170 100
+colorWhite =
+    rgb255 255 255 255
 
-colorYellow = rgb255 181 159 59
 
-bgGray = Background.color colorGray
+colorGreen =
+    rgb255 106 170 100
 
-bgWhite = Background.color colorWhite
 
-bgGreen = Background.color colorGreen
+colorYellow =
+    rgb255 181 159 59
 
-bgYellow = Background.color colorYellow
+
+bgGray =
+    Background.color colorGray
+
+
+bgWhite =
+    Background.color colorWhite
+
+
+bgGreen =
+    Background.color colorGreen
+
+
+bgYellow =
+    Background.color colorYellow
+
 
 
 -- colors used to debug UI
