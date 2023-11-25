@@ -22,6 +22,6 @@ In the end it is actually very simple to just setup elm with the installer.
 
 - [ ] view (with elm-ui)
   - [x] basic layout (grid and keyboard)
-  - [ ] color the words
+  - [x] color the words
 - [ ] logic of game and updates
 - [ ] side effects (local storage, current date)
