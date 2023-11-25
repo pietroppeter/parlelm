@@ -1,13 +1,9 @@
 module Main exposing (..)
 
--- Element, alignRight, centerX, centerY, el, fill, mouseOver, padding, px, rgb255, row, spacing, text, width)
-
 import Browser
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Font as Font
-import Element.Input as Input
 import Html exposing (Html)
 import Html.Events exposing (onClick)
 
@@ -158,7 +154,7 @@ viewKeyboard =
 
 viewKeyWidth k =
     case k of
-        Key c ->
+        Key _ ->
             43
 
         _ ->
