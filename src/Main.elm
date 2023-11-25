@@ -144,7 +144,7 @@ tileBgColor tile =
         EmptyTile ->
             bgWhite
 
-        FilledTile { char, match } ->
+        FilledTile { match } ->
             case match of
                 No ->
                     bgGray
