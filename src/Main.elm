@@ -39,16 +39,8 @@ update msg model =
     model
 
 
-bgYellow =
-    Background.color (rgb255 255 255 240)
 
-
-bgCyan =
-    Background.color (rgb255 240 255 255)
-
-
-bgPink =
-    Background.color (rgb255 255 240 240)
+--- VIEW
 
 
 view : Model -> Html Msg
@@ -79,32 +71,60 @@ viewHeaderBurger =
 
 
 viewHeaderTitle =
-    el [ centerX, bgYellow ] (text "Title")
+    el [ centerX, bgYell ] (text "Title")
 
 
 viewHeaderButton =
     el [ alignRight, bgPink ] (text "Button")
 
 
+
+---  GRID
+
+
+type Match
+    = No --grey
+    | Exact --green
+    | Almost --yellow
+    | Unmatched
+
+
+type alias MatchedTile =
+    { char : Char
+    , match : Match
+    }
+
+
+type Tile
+    = EmptyTile
+    | FilledTile MatchedTile
+
+
 viewGridArea model =
-    el [ bgYellow, width fill, height (fillPortion 2) ] (viewGrid model)
+    el [ bgYell, width fill, height (fillPortion 2) ] (viewGrid model)
+
+
+emptyTile = EmptyTile
+
+defaultWord : List Tile
+defaultWord = [
+    FilledTile { char = 'A', match = No},
+    FilledTile { char = 'B', match = Exact},
+    FilledTile { char = 'C', match = Almost},
+    FilledTile { char = 'D', match = Unmatched},
+    EmptyTile
+    ]
 
 
 viewGrid model =
     column [ centerX, centerY, spacing 5 ]
-        {--
-        [ viewTileRow [ 'A', 'B', 'C', 'D', 'E' ]
-        , viewTileRow [ 'A', 'B', 'C' ]
-        , viewTileRow []
-        , viewTileRow []
-        , viewTileRow []
-        , viewTileRow []
-        ]
--}
         (List.map viewTileRow
+            (List.repeat 6 defaultWord)
+{--
             (List.take 6
                 (model.guesses ++ List.repeat 6 [])
             )
+-}
         )
 
 
@@ -112,12 +132,22 @@ viewTileRow word =
     row [ spacing 5 ]
         (List.map viewTile
             (List.take 5
-                (word ++ List.repeat 5 ' ')
+                (word ++ List.repeat 5 emptyTile)
             )
         )
 
 
-viewTile char =
+tileBgColor tile =
+    case tile of
+        EmptyTile -> bgWhite
+        FilledTile { char, match } ->
+            case match of
+                No -> bgGray
+                Exact -> bgGreen
+                Almost -> bgYellow
+                Unmatched -> bgWhite
+
+viewTile tile =
     el
         [ width (px 62)
         , Border.color colorGray
@@ -125,13 +155,21 @@ viewTile char =
         , height (px 62)
         , centerX
         , centerY
-        , bgPink
+        , tileBgColor tile
         ]
-        (viewChar char)
+        (viewTileChar tile)
 
 
-viewChar char =
-    el [ centerX, centerY ] (text (String.fromChar char))
+viewTileChar : Tile -> Element Msg
+viewTileChar tile =
+    case tile of
+        EmptyTile ->
+            el [ centerX, centerY ] (text (String.fromChar ' '))
+        FilledTile ftile ->
+            el [ centerX, centerY ] (text (String.fromChar ftile.char))
+
+
+-- KEYBOARD
 
 
 type Keyboard
@@ -185,8 +223,40 @@ viewKeyboardRow keys =
         (List.map viewMakeButton keys)
 
 
-colorGray =
-    rgb255 211 214 218
+
+--- COLORS
+
+
+colorGray = rgb255 211 214 218
+
+colorWhite = rgb255 255 255 255
+
+colorGreen = rgb255 106 170 100
+
+colorYellow = rgb255 181 159 59
+
+bgGray = Background.color colorGray
+
+bgWhite = Background.color colorWhite
+
+bgGreen = Background.color colorGreen
+
+bgYellow = Background.color colorYellow
+
+
+-- colors used to debug UI
+
+
+bgYell =
+    Background.color (rgb255 255 255 240)
+
+
+bgCyan =
+    Background.color (rgb255 240 255 255)
+
+
+bgPink =
+    Background.color (rgb255 255 240 240)
 
 
 
