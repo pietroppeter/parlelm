@@ -5,5 +5,5 @@ color-words
 - [x] refactor tile object
 - [ ] colors
   - [x] background colors
-  - [ ] border
+  - [x] border
   - [ ] font color (and size)

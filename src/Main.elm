@@ -159,10 +159,29 @@ tileBgColor tile =
                     bgWhite
 
 
+tileBorderColor tile =
+    case tile of
+        EmptyTile ->
+            colorGray
+
+        FilledTile { match } ->
+            case match of
+                No ->
+                    colorGray
+
+                Exact ->
+                    colorGreen
+
+                Almost ->
+                    colorYellow
+
+                Unmatched ->
+                    colorBlack
+
 viewTile tile =
     el
         [ width (px 62)
-        , Border.color colorGray
+        , Border.color (tileBorderColor tile)
         , Border.width 2
         , height (px 62)
         , centerX
@@ -248,6 +267,9 @@ colorGray =
 colorWhite =
     rgb255 255 255 255
 
+
+colorBlack =
+    rgb255 33 33 33
 
 colorGreen =
     rgb255 106 170 100
