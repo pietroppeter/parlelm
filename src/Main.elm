@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Array exposing (Array)
 import Browser
 import Element exposing (..)
 import Element.Background as Background
@@ -14,7 +15,8 @@ main =
 
 
 type alias Model =
-    { guesses : List (List Char)
+    { guesses : List Word
+    , current : Word
     , solution : List Char
     }
 
@@ -22,10 +24,11 @@ type alias Model =
 init : Model
 init =
     { guesses =
-        [ [ 'A', 'B', 'C', 'D', 'E' ]
-        , [ 'A', 'B', 'C' ]
+        [ testGuess1
+        , testGuess2
         ]
-    , solution = []
+    , current = testCurrent
+    , solution = testSolution
     }
 
 
@@ -87,10 +90,10 @@ type Match
     = No --grey
     | Exact --green
     | Almost --yellow
-    | Unmatched
+    | Unmatched --white
 
 
-type alias MatchedTile =
+type alias Letter =
     { char : Char
     , match : Match
     }
@@ -98,7 +101,11 @@ type alias MatchedTile =
 
 type Tile
     = EmptyTile
-    | FilledTile MatchedTile
+    | FilledTile Letter
+
+
+type alias Word =
+    List Tile
 
 
 viewGridArea model =
@@ -109,8 +116,8 @@ emptyTile =
     EmptyTile
 
 
-defaultWord : List Tile
-defaultWord =
+testWord : Word
+testWord =
     [ FilledTile { char = 'A', match = No }
     , FilledTile { char = 'B', match = Exact }
     , FilledTile { char = 'C', match = Almost }
@@ -119,24 +126,59 @@ defaultWord =
     ]
 
 
+testGuess1 =
+    [ FilledTile { char = 'P', match = No }
+    , FilledTile { char = 'O', match = No }
+    , FilledTile { char = 'S', match = No }
+    , FilledTile { char = 'T', match = No }
+    , FilledTile { char = 'A', match = Exact }
+    ]
+
+
+testGuess2 =
+    [ FilledTile { char = 'F', match = Almost }
+    , FilledTile { char = 'U', match = Exact }
+    , FilledTile { char = 'R', match = No }
+    , FilledTile { char = 'B', match = Almost }
+    , FilledTile { char = 'A', match = Exact }
+    ]
+
+
+testCurrent =
+    [ FilledTile { char = 'B', match = Unmatched }
+    , FilledTile { char = 'U', match = Unmatched }
+    , FilledTile { char = 'F', match = Unmatched }
+    ]
+
+
+testSolution =
+    [ 'B', 'U', 'F', 'F', 'A' ]
+
+
+emptyWord =
+    List.repeat 5 emptyTile
+
+
+padRightTake n padFill aList =
+    List.take n (aList ++ List.repeat n padFill)
+
+
+getWords model =
+    padRightTake
+        6
+        emptyWord
+        (model.guesses ++ [ padRightTake 5 EmptyTile model.current ])
+
+
 viewGrid model =
     column [ centerX, centerY, spacing 5 ]
-        (List.map viewTileRow
-            (List.repeat 6 defaultWord)
-         {--
-            (List.take 6
-                (model.guesses ++ List.repeat 6 [])
-            )
--}
-        )
+        (List.map viewTileRow (getWords model))
 
 
 viewTileRow word =
     row [ spacing 5 ]
         (List.map viewTile
-            (List.take 5
-                (word ++ List.repeat 5 emptyTile)
-            )
+            (padRightTake 5 emptyTile word)
         )
 
 
