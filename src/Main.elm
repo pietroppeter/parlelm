@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Browser
 import Element exposing (..)
@@ -47,7 +47,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     layout [ width fill, height fill ]
-        (column [ width (px 500), height fill, centerX, bgCyan ]
+        (column [ width (fill |> maximum 500), height fill, centerX, bgCyan ]
             [ viewHeader
             , viewGridArea model
             , viewKeyboardArea
@@ -215,7 +215,14 @@ viewTileChar tile =
             el [ centerX, centerY ] (text (String.fromChar ' '))
 
         FilledTile ftile ->
-            el [ centerX, centerY, Font.color (tileFontColor ftile.match), Font.size 32, Font.bold ] (text (String.fromChar ftile.char))
+            el
+                [ centerX
+                , centerY
+                , Font.color (tileFontColor ftile.match)
+                , Font.size 32
+                , Font.bold
+                ]
+                (text (String.fromChar ftile.char))
 
 
 
