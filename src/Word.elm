@@ -1,46 +1,37 @@
-module Word exposing (..)
+module Word exposing (MatchedChar(..), matchGuess)
 
 import Expect
 import Test exposing (Test, describe, test)
 
 
-type Match
-    = Missing --grey
-    | Exact --green
-    | Present --yellow
+type MatchedChar
+    = Missing Char --grey
+    | Exact Char --green
+    | Present Char --yellow
 
 
-type alias Letter =
-    { char : Char
-    , match : Match
-    }
+matchGuess : List Char -> List Char -> List MatchedChar
+matchGuess guess solution =
+    let
+        matchStatus =
+            match guess solution
+    in
+    toMatched matchStatus guess
 
 
-type Tile
-    = EmptyTile
-    | FilledTile Letter
-
-
-type Word
-    = Word (List Tile)
-
-
-toMatched : List Char -> List Char -> List Letter
+toMatched : List Char -> List Char -> List MatchedChar
 toMatched matchStatus chars =
     List.map2
         (\m c ->
-            { char = c
-            , match =
-                case m of
-                    'e' ->
-                        Exact
+            case m of
+                'e' ->
+                    Exact c
 
-                    'p' ->
-                        Present
+                'p' ->
+                    Present c
 
-                    _ ->
-                        Missing
-            }
+                _ ->
+                    Missing c
         )
         matchStatus
         chars

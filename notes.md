@@ -19,3 +19,5 @@ implement logic
 - [x] test suite
 - [x] implement logic
 - [ ] link with main
+  - [x] refactor word logic using algebric types "MatchLetter"
+  - [ ] refactor model
