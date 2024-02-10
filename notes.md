@@ -12,3 +12,9 @@ refactor-word: goal is to refactor word to be able to show complete guess, curre
 - [x] new Word type
 - [x] refactor model (add current)
 - [x] new test data for init model
+
+implement logic
+- [x] new module word
+- [ ] test suite
+- [ ] implement logic
+- [ ] link with main

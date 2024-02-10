@@ -50,3 +50,5 @@ matchExactTile ( a, b ) =
 
 matchExact ( sol, guess ) =
     List.unzip (List.map matchExactTile (zip sol guess))
+
+
