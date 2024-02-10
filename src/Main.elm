@@ -8,6 +8,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Html exposing (Html)
 import Html.Events exposing (onClick)
+import Word exposing (..)
 
 
 main =
@@ -15,9 +16,9 @@ main =
 
 
 type alias Model =
-    { guesses : List Word
-    , current : Word
-    , solution : List Char
+    { guesses : List (List MatchedChar) -- diventa quella della logica
+    , current : List Char -- diventa List Char
+    , solution : List Char -- rimane
     }
 
 
@@ -84,30 +85,28 @@ viewHeaderButton =
 
 
 ---  GRID
-
-
-type Match
-    = No --grey
-    | Exact --green
-    | Almost --yellow
-    | Unmatched --white
-
-
-type alias Letter =
-    { char : Char
-    , match : Match
-    }
+-- type Match
+--     = Noxx --grey
+--     | Exactxx --green
+--     | Almostxx --yellow
+--     | Unmatchedxx --white
+-- type alias Letter =
+--    { char : Char
+--    , match : Match
+--    }
 
 
 type Tile
     = EmptyTile
-    | FilledTile Letter
+    | FilledTile MatchedChar
 
 
-type alias Word =
-    List Tile
+
+-- type Word
+--     = List Letter
 
 
+viewGridArea : Model -> Element Msg
 viewGridArea model =
     el [ bgYell, width fill, height (fillPortion 2) ] (viewGrid model)
 
@@ -116,39 +115,37 @@ emptyTile =
     EmptyTile
 
 
-testWord : Word
-testWord =
-    [ FilledTile { char = 'A', match = No }
-    , FilledTile { char = 'B', match = Exact }
-    , FilledTile { char = 'C', match = Almost }
-    , FilledTile { char = 'D', match = Unmatched }
-    , EmptyTile
-    ]
+
+-- testWord : Word
+-- testWord =
+--     [ FilledTile { char = 'A', match = No }
+--     , FilledTile { char = 'B', match = Exact }
+--     , FilledTile { char = 'C', match = Almost }
+--     , FilledTile { char = 'D', match = Unmatched }
+--     , EmptyTile
+--     ]
 
 
 testGuess1 =
-    [ FilledTile { char = 'P', match = No }
-    , FilledTile { char = 'O', match = No }
-    , FilledTile { char = 'S', match = No }
-    , FilledTile { char = 'T', match = No }
-    , FilledTile { char = 'A', match = Exact }
+    [ Missing 'P'
+    , Missing 'O'
+    , Missing 'S'
+    , Missing 'T'
+    , Exact 'A'
     ]
 
 
 testGuess2 =
-    [ FilledTile { char = 'F', match = Almost }
-    , FilledTile { char = 'U', match = Exact }
-    , FilledTile { char = 'R', match = No }
-    , FilledTile { char = 'B', match = Almost }
-    , FilledTile { char = 'A', match = Exact }
+    [ Present 'F'
+    , Exact 'U'
+    , Missing 'R'
+    , Present 'B'
+    , Exact 'A'
     ]
 
 
 testCurrent =
-    [ FilledTile { char = 'B', match = Unmatched }
-    , FilledTile { char = 'U', match = Unmatched }
-    , FilledTile { char = 'F', match = Unmatched }
-    ]
+    [ 'B', 'U', 'F' ]
 
 
 testSolution =
@@ -159,26 +156,44 @@ emptyWord =
     List.repeat 5 emptyTile
 
 
+padRightTake : Int -> f -> List f -> List f
 padRightTake n padFill aList =
     List.take n (aList ++ List.repeat n padFill)
 
 
+guessToTile : List MatchedChar -> List Tile
+guessToTile x =
+    List.map FilledTile x
+
+
+getWords : Model -> List (List Tile)
 getWords model =
     padRightTake
         6
         emptyWord
-        (model.guesses ++ [ padRightTake 5 EmptyTile model.current ])
+        (List.map guessToTile model.guesses ++ [ padRightTake 5 EmptyTile (List.map (\c -> EmptyTile) model.current) ])
 
 
+viewGrid : Model -> Element Msg
 viewGrid model =
+    -- column [ centerX, centerY, spacing 5 ] (List.map viewTileRow (getWords model))
     column [ centerX, centerY, spacing 5 ]
         (List.map viewTileRow (getWords model))
 
 
+
+-- [ row [ spacing 5 ]
+--     (List.map viewTile
+--         [ EmptyTile, EmptyTile, EmptyTile ]
+--     )
+-- ]
+
+
+viewTileRow : List Tile -> Element Msg
 viewTileRow word =
     row [ spacing 5 ]
         (List.map viewTile
-            (padRightTake 5 emptyTile word)
+            (padRightTake 5 EmptyTile word)
         )
 
 
@@ -187,19 +202,16 @@ tileBgColor tile =
         EmptyTile ->
             bgWhite
 
-        FilledTile { match } ->
+        FilledTile match ->
             case match of
-                No ->
+                Missing _ ->
                     bgDarkGray
 
-                Exact ->
+                Exact _ ->
                     bgGreen
 
-                Almost ->
+                Present _ ->
                     bgYellow
-
-                Unmatched ->
-                    bgWhite
 
 
 tileBorderColor tile =
@@ -207,37 +219,32 @@ tileBorderColor tile =
         EmptyTile ->
             colorGray
 
-        FilledTile { match } ->
+        FilledTile match ->
             case match of
-                No ->
+                Missing _ ->
                     colorDarkGray
 
-                Exact ->
+                Exact _ ->
                     colorGreen
 
-                Almost ->
+                Present _ ->
                     colorYellow
 
-                Unmatched ->
-                    colorBlack
 
-
-tileFontColor : Match -> Color
+tileFontColor : MatchedChar -> Color
 tileFontColor match =
     case match of
-        No ->
+        Missing _ ->
             colorWhite
 
-        Exact ->
+        Exact _ ->
             colorWhite
 
-        Almost ->
+        Present _ ->
             colorWhite
 
-        Unmatched ->
-            colorBlack
 
-
+viewTile : Tile -> Element Msg
 viewTile tile =
     el
         [ width (px 62)
@@ -257,15 +264,27 @@ viewTileChar tile =
         EmptyTile ->
             el [ centerX, centerY ] (text (String.fromChar ' '))
 
-        FilledTile ftile ->
+        FilledTile match ->
+            let
+                ( color, char ) =
+                    case match of
+                        Missing c ->
+                            ( colorWhite, c )
+
+                        Exact c ->
+                            ( colorWhite, c )
+
+                        Present c ->
+                            ( colorWhite, c )
+            in
             el
                 [ centerX
                 , centerY
-                , Font.color (tileFontColor ftile.match)
+                , Font.color color
                 , Font.size 32
                 , Font.bold
                 ]
-                (text (String.fromChar ftile.char))
+                (text (String.fromChar char))
 
 
 
