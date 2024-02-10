@@ -15,6 +15,7 @@ refactor-word: goal is to refactor word to be able to show complete guess, curre
 
 implement logic
 - [x] new module word
-- [ ] test suite
+- [x] refactor word using suggestion from redInk style guide: https://github.com/NoRedInk/elm-style-guide?tab=readme-ov-file#identifiers
+- [x] test suite
 - [ ] implement logic
 - [ ] link with main
