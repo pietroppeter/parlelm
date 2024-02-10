@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Main exposing (main, tileFontColor)
 
 import Array exposing (Array)
 import Browser
@@ -222,6 +222,7 @@ tileBorderColor tile =
                     colorBlack
 
 
+tileFontColor : Match -> Color
 tileFontColor match =
     case match of
         No ->
