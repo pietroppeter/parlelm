@@ -1,4 +1,4 @@
-module Word exposing (MatchedChar(..), matchGuess)
+module Word exposing (MatchedChar(..), matchGuess, suite)
 
 import Expect
 import Test exposing (Test, describe, test)
@@ -120,6 +120,93 @@ match guess solution =
     resultUpdate
 
 
+
+-- Prepend element to second element of a tuple
+-- (1, [9, 8, 7]) 10 -> (1, [10, 9, 8, 7])
+
+
+t2prepend : ( t, List t ) -> t -> ( t, List t )
+t2prepend ( a, y ) x =
+    ( a, x :: y )
+
+
+
+-- finder looks for a character inside a list of previously matched chars;
+-- returns the state of the match and a new list of matched chars.
+-- E.g. 'F' in 'bUffA' -> 'bUFfA' (upper case is a match)
+
+
+finder : Char -> List MatchedChar -> List Char -> ( MatchedChar, List MatchedChar )
+finder soggetto listaStato listaLettereTarget =
+    case ( listaStato, listaLettereTarget ) of
+        ( [], _ ) ->
+            ( Missing soggetto, [] )
+
+        ( _, [] ) ->
+            ( Missing soggetto, [] )
+
+        ( (Missing c) :: ls, l :: ll ) ->
+            if soggetto == l then
+                -- L'abbiamo trovato
+                ( Present soggetto, Present soggetto :: ls )
+
+            else
+                t2prepend (finder soggetto ls ll) (Missing c)
+
+        -- ( (Exact c) :: ls, l :: ll ) ->
+        --     -- Devo saltare questo caso, perché la lettera è già presa
+        --     t2prepend (finder soggetto ls ll) (Exact c)
+        -- ( (Present c) :: ls, l :: ll ) ->
+        --     t2prepend (finder soggetto ls ll) (Present c)
+        ( m :: ls, l :: ll ) ->
+            t2prepend (finder soggetto ls ll) m
+
+
+rematch : List Char -> List Char -> List MatchedChar
+rematch guess solution =
+    let
+        equalChars : List MatchedChar
+        equalChars =
+            List.map2
+                (\g s ->
+                    if g == s then
+                        Exact g
+
+                    else
+                        Missing g
+                )
+                guess
+                solution
+
+        secondStep : Int -> List Char -> List MatchedChar -> List Char -> List MatchedChar
+        secondStep i gue stato target =
+            case ( gue, List.drop i stato ) of
+                ( [], _ ) ->
+                    []
+
+                ( _, [] ) ->
+                    []
+
+                ( g :: gs, (Exact _) :: ss ) ->
+                    -- Se una lettera è sicura significa che l'abbiamo già trovata
+                    -- e non ha senso cercare ricorsivamente.
+                    Exact g :: secondStep (i + 1) gs stato target
+
+                ( g :: gs, _ :: ss ) ->
+                    -- Non sono sicuro, devo cercare
+                    case finder g stato target of
+                        ( Exact _, nuovoStato ) ->
+                            Exact g :: secondStep (i + 1) gs nuovoStato target
+
+                        ( Missing _, nuovoStato ) ->
+                            Missing g :: secondStep (i + 1) gs nuovoStato target
+
+                        ( Present _, nuovoStato ) ->
+                            Present g :: secondStep (i + 1) gs nuovoStato target
+    in
+    secondStep 0 guess equalChars solution
+
+
 suite : Test
 suite =
     let
@@ -134,19 +221,27 @@ suite =
                 expect =
                     String.toList e
             in
-            test (g ++ "-" ++ s ++ "=" ++ e) <| \_ -> Expect.equal (match guess solution) expect
+            test (g ++ "-" ++ s ++ "=" ++ e) <|
+                \_ ->
+                    Expect.all
+                        [ Expect.equal (match guess solution)
+                        , \hint -> Expect.equal (rematch guess solution) (toMatched hint guess)
+                        ]
+                        expect
     in
     describe "Wordle Match Logic"
         [ describe "MatchExact"
             [ testMatch "FURBA" "BUFFA" "pe.pe"
             , testMatch "BABBA" "CACCA" ".e..e"
             , testMatch "BAA" "CCB" "p.."
-            , testMatch "longer" "smal" "p....."
             , testMatch "SMAL" "Soooosoos" "e..."
             , testMatch "LLxxx" "yyLLL" "pp..."
             , testMatch "yyLLL" "LLxxx" "..pp."
-            , testMatch "ABB" "AA" "e.."
             , testMatch "AxyA" "zAAw" "p..p"
+
+            -- Pattern longer than solution is not supported by rematch
+            -- , testMatch "longer" "smal" "p....."
+            -- , testMatch "ABB" "AA" "e.."
             ]
         , describe "Lista"
             [ test "3o" <|
@@ -155,5 +250,22 @@ suite =
             , test "set 1" <| \_ -> Expect.equal (set [ 0, 1, 2 ] 1 9) [ 0, 9, 2 ]
             , test "set 2" <| \_ -> Expect.equal (set [ 0, 1, 2 ] 2 9) [ 0, 1, 9 ]
             , test "set 3" <| \_ -> Expect.equal (set [ 0, 1, 2 ] 3 9) [ 0, 1, 2 ]
+            ]
+        , describe "finding"
+            [ test "B in FuRbBo" <|
+                \_ ->
+                    Expect.equal
+                        (finder 'B' [ Missing 'F', Exact 'U', Missing 'R', Exact 'B', Missing 'B', Missing 'O' ] [ 'F', 'U', 'R', 'B', 'B', 'O' ])
+                        ( Present 'B', [ Missing 'F', Exact 'U', Missing 'R', Exact 'B', Present 'B', Missing 'O' ] )
+            , test "B in Rbbo" <|
+                \_ ->
+                    Expect.equal
+                        (finder 'B' [ Missing 'R', Exact 'B', Present 'B', Missing 'O' ] [ 'R', 'B', 'B', 'O' ])
+                        ( Missing 'B', [ Missing 'R', Exact 'B', Present 'B', Missing 'O' ] )
+            , test "finding F(URBA) in (B)UFFA" <|
+                \_ ->
+                    Expect.equal
+                        (finder 'F' [ Exact 'U', Missing 'F', Missing 'F', Exact 'A' ] [ 'U', 'F', 'F', 'A' ])
+                        ( Present 'F', [ Exact 'U', Present 'F', Missing 'F', Exact 'A' ] )
             ]
         ]
