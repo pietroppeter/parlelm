@@ -1,4 +1,4 @@
-module Word exposing (MatchedChar(..), matchGuess, suite)
+module Word exposing (MatchedChar(..), matchGuess, rematch, suite)
 
 import Expect
 import Test exposing (Test, describe, test)
