@@ -1,4 +1,4 @@
-module Main exposing (main, tileFontColor)
+module Main exposing (main)
 
 import Array exposing (Array)
 import Browser
@@ -83,27 +83,9 @@ viewHeaderButton =
     el [ alignRight, bgPink ] (text "Button")
 
 
-
----  GRID
--- type Match
---     = Noxx --grey
---     | Exactxx --green
---     | Almostxx --yellow
---     | Unmatchedxx --white
--- type alias Letter =
---    { char : Char
---    , match : Match
---    }
-
-
 type Tile
     = EmptyTile
     | FilledTile MatchedChar
-
-
-
--- type Word
---     = List Letter
 
 
 viewGridArea : Model -> Element Msg
@@ -113,17 +95,6 @@ viewGridArea model =
 
 emptyTile =
     EmptyTile
-
-
-
--- testWord : Word
--- testWord =
---     [ FilledTile { char = 'A', match = No }
---     , FilledTile { char = 'B', match = Exact }
---     , FilledTile { char = 'C', match = Almost }
---     , FilledTile { char = 'D', match = Unmatched }
---     , EmptyTile
---     ]
 
 
 testGuess1 =
@@ -181,14 +152,6 @@ viewGrid model =
         (List.map viewTileRow (getWords model))
 
 
-
--- [ row [ spacing 5 ]
---     (List.map viewTile
---         [ EmptyTile, EmptyTile, EmptyTile ]
---     )
--- ]
-
-
 viewTileRow : List Tile -> Element Msg
 viewTileRow word =
     row [ spacing 5 ]
@@ -244,6 +207,19 @@ tileFontColor match =
             colorWhite
 
 
+tileChar : MatchedChar -> Char
+tileChar match =
+    case match of
+        Missing c ->
+            c
+
+        Exact c ->
+            c
+
+        Present c ->
+            c
+
+
 viewTile : Tile -> Element Msg
 viewTile tile =
     el
@@ -265,26 +241,14 @@ viewTileChar tile =
             el [ centerX, centerY ] (text (String.fromChar ' '))
 
         FilledTile match ->
-            let
-                ( color, char ) =
-                    case match of
-                        Missing c ->
-                            ( colorWhite, c )
-
-                        Exact c ->
-                            ( colorWhite, c )
-
-                        Present c ->
-                            ( colorWhite, c )
-            in
             el
                 [ centerX
                 , centerY
-                , Font.color color
+                , Font.color (tileFontColor match)
                 , Font.size 32
                 , Font.bold
                 ]
-                (text (String.fromChar char))
+                (text (String.fromChar (tileChar match)))
 
 
 
