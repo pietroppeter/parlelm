@@ -131,35 +131,31 @@ t2prepend ( a, y ) x =
 
 
 
--- finder looks for a character inside a list of previously matched chars;
+-- finder looks for a (guessed) character inside a list of previously matched chars;
 -- returns the state of the match and a new list of matched chars.
 -- E.g. 'F' in 'bUffA' -> 'bUFfA' (upper case is a match)
 
 
 finder : Char -> List MatchedChar -> List Char -> ( MatchedChar, List MatchedChar )
-finder soggetto listaStato listaLettereTarget =
-    case ( listaStato, listaLettereTarget ) of
+finder g matchState solution =
+    case ( matchState, solution ) of
         ( [], _ ) ->
-            ( Missing soggetto, [] )
+            ( Missing g, [] )
 
         ( _, [] ) ->
-            ( Missing soggetto, [] )
+            ( Missing g, [] )
 
         ( (Missing c) :: ls, l :: ll ) ->
-            if soggetto == l then
-                -- L'abbiamo trovato
-                ( Present soggetto, Present soggetto :: ls )
+            if g == l then
+                -- We found the char matching with a unassigned character
+                ( Present g, Present g :: ls )
 
             else
-                t2prepend (finder soggetto ls ll) (Missing c)
+                t2prepend (finder g ls ll) (Missing c)
 
-        -- ( (Exact c) :: ls, l :: ll ) ->
-        --     -- Devo saltare questo caso, perché la lettera è già presa
-        --     t2prepend (finder soggetto ls ll) (Exact c)
-        -- ( (Present c) :: ls, l :: ll ) ->
-        --     t2prepend (finder soggetto ls ll) (Present c)
+        -- If it's Exact or Present, then we skip the letter and try the next one.
         ( m :: ls, l :: ll ) ->
-            t2prepend (finder soggetto ls ll) m
+            t2prepend (finder g ls ll) m
 
 
 rematch : List Char -> List Char -> List MatchedChar
@@ -178,33 +174,36 @@ rematch guess solution =
                 guess
                 solution
 
-        secondStep : Int -> List Char -> List MatchedChar -> List Char -> List MatchedChar
-        secondStep i gue stato target =
-            case ( gue, List.drop i stato ) of
+        matchGuessChars : Int -> List Char -> List MatchedChar -> List Char -> List MatchedChar
+        matchGuessChars i gue state target =
+            case ( gue, List.drop i state ) of
+                -- It's over when there are no more letters in the guess to match.
                 ( [], _ ) ->
                     []
 
+                -- If the state is empty, we cannot match anything
                 ( _, [] ) ->
                     []
 
                 ( g :: gs, (Exact _) :: ss ) ->
-                    -- Se una lettera è sicura significa che l'abbiamo già trovata
-                    -- e non ha senso cercare ricorsivamente.
-                    Exact g :: secondStep (i + 1) gs stato target
+                    -- If a letter is an exact match, it means we found it already
+                    -- so no need to find it. Let's proceed to the next letter.
+                    Exact g :: matchGuessChars (i + 1) gs state target
 
                 ( g :: gs, _ :: ss ) ->
-                    -- Non sono sicuro, devo cercare
-                    case finder g stato target of
-                        ( Exact _, nuovoStato ) ->
-                            Exact g :: secondStep (i + 1) gs nuovoStato target
+                    -- Not sure if this letter is present: let's search for it
+                    -- in the whole solution. This might update the state.
+                    case finder g state target of
+                        ( Exact _, newState ) ->
+                            Exact g :: matchGuessChars (i + 1) gs newState target
 
-                        ( Missing _, nuovoStato ) ->
-                            Missing g :: secondStep (i + 1) gs nuovoStato target
+                        ( Missing _, newState ) ->
+                            Missing g :: matchGuessChars (i + 1) gs newState target
 
-                        ( Present _, nuovoStato ) ->
-                            Present g :: secondStep (i + 1) gs nuovoStato target
+                        ( Present _, newState ) ->
+                            Present g :: matchGuessChars (i + 1) gs newState target
     in
-    secondStep 0 guess equalChars solution
+    matchGuessChars 0 guess equalChars solution
 
 
 suite : Test
