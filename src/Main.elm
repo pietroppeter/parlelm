@@ -27,7 +27,7 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { guesses = [ testGuess1, testGuess2 ]
+    ( { guesses = []
       , current = testCurrent
       , solution = testSolution
       }
