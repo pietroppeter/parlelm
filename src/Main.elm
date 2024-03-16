@@ -28,7 +28,7 @@ type alias Model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { guesses = []
-      , current = testCurrent
+      , current = []
       , solution = testSolution
       }
     , Cmd.none
@@ -182,18 +182,6 @@ emptyTile =
 
 testSolution =
     [ 'B', 'U', 'F', 'F', 'A' ]
-
-
-testGuess1 =
-    rematch [ 'P', 'O', 'S', 'T', 'A' ] testSolution
-
-
-testGuess2 =
-    rematch [ 'F', 'U', 'R', 'B', 'A' ] testSolution
-
-
-testCurrent =
-    [ 'B', 'U', 'F' ]
 
 
 emptyWord =
