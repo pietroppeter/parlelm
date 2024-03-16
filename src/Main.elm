@@ -2,17 +2,20 @@ module Main exposing (main)
 
 import Array exposing (Array)
 import Browser
+import Browser.Events
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
+import Element.Events as Ev
 import Element.Font as Font
 import Html exposing (Html)
-import Html.Events exposing (onClick)
+import Html.Events
+import Json.Decode as Decode
 import Word exposing (..)
 
 
 main =
-    Browser.sandbox { init = init, update = update, view = view }
+    Browser.element { init = init, update = update, view = view, subscriptions = subscriptions }
 
 
 type alias Model =
@@ -22,15 +25,17 @@ type alias Model =
     }
 
 
-init : Model
-init =
-    { guesses =
-        [ testGuess1
-        , testGuess2
-        ]
-    , current = testCurrent
-    , solution = testSolution
-    }
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( { guesses =
+            [ testGuess1
+            , testGuess2
+            ]
+      , current = testCurrent
+      , solution = testSolution
+      }
+    , Cmd.none
+    )
 
 
 type Msg
@@ -39,9 +44,67 @@ type Msg
     | Confirm
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    model
+    ( case msg of
+        KeyPressed c ->
+            -- Add to the current solution as long as it's shorter than 5,
+            -- then just ignore letters
+            if List.length model.current < 5 then
+                Debug.log "Pressed" { model | current = model.current ++ [ c ] }
+
+            else
+                model
+
+        Confirm ->
+            Debug.todo "Confirm"
+
+        Backspace ->
+            -- Remove last character from current, as long as it's not empty
+            Debug.log "Chomped" { model | current = List.take (List.length model.current - 1) model.current }
+    , Cmd.none
+    )
+
+
+
+--- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions m =
+    -- Let's decode the `key` field as a string, then try to decode
+    -- the string and see if it is a valid character: if the character is invalid,
+    -- the decoding should fail and no message shall be send: only Enter,
+    -- Backspace and letters are valid.
+    Browser.Events.onKeyDown
+        (Decode.andThen decodeKey (Decode.field "key" Decode.string))
+
+
+
+-- Take a string and returns a decoder: it will succeed for Enter, Backpace and
+-- ASCII alphas, but fail for anything else
+
+
+decodeKey : String -> Decode.Decoder Msg
+decodeKey str =
+    case str of
+        "Enter" ->
+            Decode.succeed Confirm
+
+        "Backspace" ->
+            Decode.succeed Backspace
+
+        _ ->
+            case String.uncons str of
+                Just ( ch, "" ) ->
+                    if Char.isAlpha ch then
+                        Decode.succeed (KeyPressed ch)
+
+                    else
+                        Decode.fail "Not alpha"
+
+                _ ->
+                    Decode.fail "Another control"
 
 
 
@@ -294,13 +357,30 @@ viewKeyString k =
             "<-"
 
 
-viewMakeButton : Keyboard -> Element msg
+viewKeyEvent k =
+    case k of
+        Key c ->
+            Ev.onClick (KeyPressed c)
+
+        KeyBackspace ->
+            Ev.onClick Backspace
+
+        KeyEnter ->
+            Ev.onClick Confirm
+
+
+viewMakeButton : Keyboard -> Element Msg
 viewMakeButton k =
-    el [ bgCyan, height (px 58), width (px (viewKeyWidth k)) ]
+    el
+        [ bgCyan
+        , height (px 58)
+        , width (px (viewKeyWidth k))
+        , viewKeyEvent k
+        ]
         (el [ centerX, centerY ] (text (viewKeyString k)))
 
 
-viewKeyboardRow : List Keyboard -> Element msg
+viewKeyboardRow : List Keyboard -> Element Msg
 viewKeyboardRow keys =
     row [ spacing 5, centerX ]
         (List.map viewMakeButton keys)
