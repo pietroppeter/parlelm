@@ -25,3 +25,10 @@ In the end it is actually very simple to just setup elm with the installer.
   - [x] color the words
 - [ ] logic of game and updates
 - [ ] side effects (local storage, current date)
+
+
+## tests
+
+using elm-explorations/test and node-test-runner
+- install using `npm install -g elm-test`
+- test using `elm-test src/Word.elm`
