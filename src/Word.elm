@@ -1,4 +1,4 @@
-module Word exposing (MatchedChar(..), matchGuess, rematch, suite)
+module Word exposing (MatchedChar(..), rematch, suite)
 
 import Expect
 import Test exposing (Test, describe, test)
@@ -8,15 +8,6 @@ type MatchedChar
     = Missing Char --grey
     | Exact Char --green
     | Present Char --yellow
-
-
-matchGuess : List Char -> List Char -> List MatchedChar
-matchGuess guess solution =
-    let
-        matchStatus =
-            match guess solution
-    in
-    toMatched matchStatus guess
 
 
 toMatched : List Char -> List Char -> List MatchedChar
@@ -35,89 +26,6 @@ toMatched matchStatus chars =
         )
         matchStatus
         chars
-
-
-zip a b =
-    List.map2 Tuple.pair a b
-
-
-at : List t -> Int -> Maybe t
-at list i =
-    List.head (List.drop i (List.take (i + 1) list))
-
-
-set : List t -> Int -> t -> List t
-set list i x =
-    if i < List.length list then
-        List.take i list ++ [ x ] ++ List.drop (i + 1) list
-
-    else
-        list
-
-
-matchExact : List Char -> List Char -> List Char
-matchExact a b =
-    List.take (List.length a)
-        (List.map2
-            (\x y ->
-                if x == y then
-                    'e'
-
-                else
-                    '.'
-            )
-            a
-            b
-            ++ List.repeat (List.length a - List.length b) '.'
-        )
-
-
-match : List Char -> List Char -> List Char
-match guess solution =
-    let
-        guessExact : List Char
-        guessExact =
-            matchExact guess solution
-
-        solutionExact : List Char
-        solutionExact =
-            matchExact solution guess
-
-        innerLoop i j sol result =
-            if j < List.length sol then
-                if at sol j /= Just '.' then
-                    innerLoop i (j + 1) sol result
-
-                else if at solution j == at guess i then
-                    ( set sol j 'p'
-                    , set result i 'p'
-                    )
-
-                else
-                    innerLoop i (j + 1) sol result
-
-            else
-                ( sol, result )
-
-        outerLoop i sol result =
-            if i < List.length guess then
-                if at result i == Just 'e' then
-                    outerLoop (i + 1) sol result
-
-                else
-                    let
-                        ( solInner, resultInner ) =
-                            innerLoop i 0 sol result
-                    in
-                    outerLoop (i + 1) solInner resultInner
-
-            else
-                ( sol, result )
-
-        ( solUpdate, resultUpdate ) =
-            outerLoop 0 solutionExact guessExact
-    in
-    resultUpdate
 
 
 
@@ -156,6 +64,11 @@ finder g matchState solution =
         -- If it's Exact or Present, then we skip the letter and try the next one.
         ( m :: ls, l :: ll ) ->
             t2prepend (finder g ls ll) m
+
+
+
+-- Given a guess and a solution, returns a list of matched characters
+-- Does not handle the case of guess longer than soludion
 
 
 rematch : List Char -> List Char -> List MatchedChar
@@ -222,11 +135,7 @@ suite =
             in
             test (g ++ "-" ++ s ++ "=" ++ e) <|
                 \_ ->
-                    Expect.all
-                        [ Expect.equal (match guess solution)
-                        , \hint -> Expect.equal (rematch guess solution) (toMatched hint guess)
-                        ]
-                        expect
+                    Expect.equal (rematch guess solution) (toMatched expect guess)
     in
     describe "Wordle Match Logic"
         [ describe "MatchExact"
@@ -241,14 +150,6 @@ suite =
             -- Pattern longer than solution is not supported by rematch
             -- , testMatch "longer" "smal" "p....."
             -- , testMatch "ABB" "AA" "e.."
-            ]
-        , describe "Lista"
-            [ test "3o" <|
-                \_ -> Expect.equal (at [ 0, 1, 2, 3, 4 ] 2) (Just 2)
-            , test "set 0" <| \_ -> Expect.equal (set [ 0, 1, 2 ] 0 9) [ 9, 1, 2 ]
-            , test "set 1" <| \_ -> Expect.equal (set [ 0, 1, 2 ] 1 9) [ 0, 9, 2 ]
-            , test "set 2" <| \_ -> Expect.equal (set [ 0, 1, 2 ] 2 9) [ 0, 1, 9 ]
-            , test "set 3" <| \_ -> Expect.equal (set [ 0, 1, 2 ] 3 9) [ 0, 1, 2 ]
             ]
         , describe "finding"
             [ test "B in FuRbBo" <|

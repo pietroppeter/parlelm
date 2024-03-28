@@ -19,19 +19,16 @@ main =
 
 
 type alias Model =
-    { guesses : List (List MatchedChar) -- diventa quella della logica
-    , current : List Char -- diventa List Char
-    , solution : List Char -- rimane
+    { guesses : List (List MatchedChar)
+    , current : List Char
+    , solution : List Char
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { guesses =
-            [ testGuess1
-            , testGuess2
-            ]
-      , current = testCurrent
+    ( { guesses = []
+      , current = []
       , solution = testSolution
       }
     , Cmd.none
@@ -46,24 +43,42 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        currentGuessLen =
+            List.length model.current
+    in
     ( case msg of
         KeyPressed c ->
             -- Add to the current solution as long as it's shorter than 5,
             -- then just ignore letters
-            if List.length model.current < 5 then
-                Debug.log "Pressed" { model | current = model.current ++ [ c ] }
+            if currentGuessLen < 5 then
+                Debug.log "Pressed" { model | current = model.current ++ [ Char.toUpper c ] }
 
             else
                 model
 
         Confirm ->
-            Debug.todo "Confirm"
+            -- Confirmation can happen only if guess has length 5
+            if currentGuessLen < 5 then
+                model
+
+            else
+                confirmGuess model
 
         Backspace ->
             -- Remove last character from current, as long as it's not empty
-            Debug.log "Chomped" { model | current = List.take (List.length model.current - 1) model.current }
+            Debug.log "Chomped" { model | current = List.take (currentGuessLen - 1) model.current }
     , Cmd.none
     )
+
+
+confirmGuess : Model -> Model
+confirmGuess model =
+    let
+        matched =
+            rematch model.current model.solution
+    in
+    { model | current = [], guesses = model.guesses ++ [ matched ] }
 
 
 
@@ -117,7 +132,7 @@ view model =
         (column [ width (fill |> maximum 500), height fill, centerX, bgCyan ]
             [ viewHeader
             , viewGridArea model
-            , viewKeyboardArea
+            , viewKeyboardArea model
             ]
         )
 
@@ -146,9 +161,14 @@ viewHeaderButton =
     el [ alignRight, bgPink ] (text "Button")
 
 
+
+-- A tile in the game, it can be empty or contains a matched char
+
+
 type Tile
     = EmptyTile
     | FilledTile MatchedChar
+    | UncheckedTile Char
 
 
 viewGridArea : Model -> Element Msg
@@ -160,28 +180,6 @@ emptyTile =
     EmptyTile
 
 
-testGuess1 =
-    [ Missing 'P'
-    , Missing 'O'
-    , Missing 'S'
-    , Missing 'T'
-    , Exact 'A'
-    ]
-
-
-testGuess2 =
-    [ Present 'F'
-    , Exact 'U'
-    , Missing 'R'
-    , Present 'B'
-    , Exact 'A'
-    ]
-
-
-testCurrent =
-    [ 'B', 'U', 'F' ]
-
-
 testSolution =
     [ 'B', 'U', 'F', 'F', 'A' ]
 
@@ -190,22 +188,44 @@ emptyWord =
     List.repeat 5 emptyTile
 
 
+
+-- Given a list, it will take the first n element from it; if there are less,
+-- they are filled with padFill.
+
+
 padRightTake : Int -> f -> List f -> List f
 padRightTake n padFill aList =
     List.take n (aList ++ List.repeat n padFill)
 
 
-guessToTile : List MatchedChar -> List Tile
-guessToTile x =
+
+-- Convert a list matched chars into a list of (filled) tiles
+
+
+tiledGuess : List MatchedChar -> List Tile
+tiledGuess x =
     List.map FilledTile x
 
 
 getWords : Model -> List (List Tile)
 getWords model =
+    let
+        -- Convert previous guesses into tiles
+        tiledGuesses =
+            List.map tiledGuess model.guesses
+
+        -- Convert current guess into tiles
+        tiledCurrent =
+            List.map (\c -> UncheckedTile c) model.current
+
+        -- Pad current guess
+        paddedCurrent =
+            padRightTake 5 EmptyTile tiledCurrent
+    in
     padRightTake
         6
         emptyWord
-        (List.map guessToTile model.guesses ++ [ padRightTake 5 EmptyTile (List.map (\c -> EmptyTile) model.current) ])
+        (tiledGuesses ++ [ paddedCurrent ])
 
 
 viewGrid : Model -> Element Msg
@@ -239,6 +259,9 @@ tileBgColor tile =
                 Present _ ->
                     bgYellow
 
+        UncheckedTile _ ->
+            bgWhite
+
 
 tileBorderColor tile =
     case tile of
@@ -255,6 +278,9 @@ tileBorderColor tile =
 
                 Present _ ->
                     colorYellow
+
+        UncheckedTile _ ->
+            colorDarkGray
 
 
 tileFontColor : MatchedChar -> Color
@@ -313,6 +339,17 @@ viewTileChar tile =
                 ]
                 (text (String.fromChar (tileChar match)))
 
+        UncheckedTile ch ->
+            el
+                [ centerX
+                , centerY
+
+                -- , Font.color (tileFontColor match)
+                , Font.size 32
+                , Font.bold
+                ]
+                (text (String.fromChar ch))
+
 
 
 -- KEYBOARD
@@ -324,15 +361,17 @@ type Keyboard
     | KeyEnter
 
 
-viewKeyboardArea =
-    el [ bgPink, width fill, height (fillPortion 1) ] viewKeyboard
+viewKeyboardArea : Model -> Element Msg
+viewKeyboardArea model =
+    el [ bgPink, width fill, height (fillPortion 1) ] (viewKeyboard model)
 
 
-viewKeyboard =
+viewKeyboard : Model -> Element Msg
+viewKeyboard model =
     column [ centerX, centerY, spacing 5 ]
-        [ viewKeyboardRow (List.map Key (String.toList "QWERTYUIOP"))
-        , viewKeyboardRow (List.map Key (String.toList "ASDFGHJKL"))
-        , viewKeyboardRow ((KeyEnter :: List.map Key (String.toList "ZXCVBNM")) ++ [ KeyBackspace ])
+        [ viewKeyboardRow model (List.map Key (String.toList "QWERTYUIOP"))
+        , viewKeyboardRow model (List.map Key (String.toList "ASDFGHJKL"))
+        , viewKeyboardRow model ((KeyEnter :: List.map Key (String.toList "ZXCVBNM")) ++ [ KeyBackspace ])
         ]
 
 
@@ -369,10 +408,76 @@ viewKeyEvent k =
             Ev.onClick Confirm
 
 
-viewMakeButton : Keyboard -> Element Msg
-viewMakeButton k =
+
+-- bestLetterColor : Model -> Char -> Element.Attr d m
+
+
+bestLetterColor model char =
+    let
+        improve : MatchedChar -> MatchedChar -> MatchedChar
+        improve ch st =
+            case ch of
+                Missing c ->
+                    -- We cannot improve with another missing char, leave state as is
+                    st
+
+                Exact c ->
+                    if c == char then
+                        -- If we find an exact match, that's the best possible
+                        Exact char
+
+                    else
+                        -- The character is different, leave state as is
+                        st
+
+                Present c ->
+                    if c == char then
+                        case st of
+                            Missing _ ->
+                                Present char
+
+                            _ ->
+                                st
+
+                    else
+                        st
+
+        -- Initially, we say that char is missing
+        initialState =
+            Missing char
+    in
+    -- bgYell
+    List.foldl improve initialState (List.concat model.guesses)
+
+
+
+-- Returns the color of a keyboard button depending on matching of past guesses
+
+
+buttonColor model k =
+    -- TODO the color is the "best" match found so far for a letter: if C is
+    -- Present in the first guess (yellow) and Exact in the second guess (green)
+    -- the C key should be colored green.
+    case k of
+        Key ch ->
+            tileBgColor (FilledTile (bestLetterColor model ch))
+
+        KeyBackspace ->
+            bgCyan
+
+        KeyEnter ->
+            bgCyan
+
+
+
+-- Creates the element for a keyboard button. It will highlight the element
+-- depending on the current guesses.
+
+
+viewMakeButton : Model -> Keyboard -> Element Msg
+viewMakeButton model k =
     el
-        [ bgCyan
+        [ buttonColor model k
         , height (px 58)
         , width (px (viewKeyWidth k))
         , viewKeyEvent k
@@ -380,10 +485,10 @@ viewMakeButton k =
         (el [ centerX, centerY ] (text (viewKeyString k)))
 
 
-viewKeyboardRow : List Keyboard -> Element Msg
-viewKeyboardRow keys =
+viewKeyboardRow : Model -> List Keyboard -> Element Msg
+viewKeyboardRow model keys =
     row [ spacing 5, centerX ]
-        (List.map viewMakeButton keys)
+        (List.map (viewMakeButton model) keys)
 
 
 
