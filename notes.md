@@ -17,5 +17,7 @@ implement logic
 - [x] new module word
 - [x] refactor word using suggestion from redInk style guide: https://github.com/NoRedInk/elm-style-guide?tab=readme-ov-file#identifiers
 - [x] test suite
-- [ ] implement logic
-- [ ] link with main
+- [x] implement logic
+- [x] link with main
+  - [x] refactor word logic using algebric types "MatchLetter"
+  - [x] refactor model
