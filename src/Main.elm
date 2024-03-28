@@ -27,11 +27,8 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { guesses =
-            [ testGuess1
-            , testGuess2
-            ]
-      , current = testCurrent
+    ( { guesses = []
+      , current = []
       , solution = testSolution
       }
     , Cmd.none
@@ -181,28 +178,6 @@ viewGridArea model =
 
 emptyTile =
     EmptyTile
-
-
-testGuess1 =
-    [ Missing 'P'
-    , Missing 'O'
-    , Missing 'S'
-    , Missing 'T'
-    , Exact 'A'
-    ]
-
-
-testGuess2 =
-    [ Present 'F'
-    , Exact 'U'
-    , Missing 'R'
-    , Present 'B'
-    , Exact 'A'
-    ]
-
-
-testCurrent =
-    [ 'B', 'U', 'F' ]
 
 
 testSolution =
@@ -434,6 +409,48 @@ viewKeyEvent k =
 
 
 
+-- bestLetterColor : Model -> Char -> Element.Attr d m
+
+
+bestLetterColor model char =
+    let
+        improve : MatchedChar -> MatchedChar -> MatchedChar
+        improve ch st =
+            case ch of
+                Missing c ->
+                    -- We cannot improve with another missing char, leave state as is
+                    st
+
+                Exact c ->
+                    if c == char then
+                        -- If we find an exact match, that's the best possible
+                        Exact char
+
+                    else
+                        -- The character is different, leave state as is
+                        st
+
+                Present c ->
+                    if c == char then
+                        case st of
+                            Missing _ ->
+                                Present char
+
+                            _ ->
+                                st
+
+                    else
+                        st
+
+        -- Initially, we say that char is missing
+        initialState =
+            Missing char
+    in
+    -- bgYell
+    List.foldl improve initialState (List.concat model.guesses)
+
+
+
 -- Returns the color of a keyboard button depending on matching of past guesses
 
 
@@ -442,11 +459,8 @@ buttonColor model k =
     -- Present in the first guess (yellow) and Exact in the second guess (green)
     -- the C key should be colored green.
     case k of
-        Key 'X' ->
-            bgYell
-
         Key ch ->
-            bgCyan
+            tileBgColor (FilledTile (bestLetterColor model ch))
 
         KeyBackspace ->
             bgCyan
