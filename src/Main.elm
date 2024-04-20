@@ -126,15 +126,48 @@ decodeKey str =
 --- VIEW
 
 
+isGameEnded model =
+    -- All guesses or a guess is all green
+    isGameWon model || (List.length model.guesses == 6)
+
+
+isGuessCorrect : List MatchedChar -> Bool
+isGuessCorrect guess =
+    let
+        isMatchExact m =
+            case m of
+                Exact _ ->
+                    True
+
+                _ ->
+                    False
+    in
+    List.all isMatchExact guess
+
+
+isGameWon model =
+    -- One guess is all green
+    List.any isGuessCorrect model.guesses
+
+
 view : Model -> Html Msg
 view model =
-    layout [ width fill, height fill ]
-        (column [ width (fill |> maximum 500), height fill, centerX, bgCyan ]
-            [ viewHeader
-            , viewGridArea model
-            , viewKeyboardArea model
-            ]
-        )
+    if isGameEnded model then
+        layout [ width fill, height fill ]
+            (column [ width (fill |> maximum 500), height fill, centerX, bgCyan ]
+                [ viewHeader
+                , viewEndGame model
+                ]
+            )
+
+    else
+        layout [ width fill, height fill ]
+            (column [ width (fill |> maximum 500), height fill, centerX, bgCyan ]
+                [ viewHeader
+                , viewGridArea model
+                , viewKeyboardArea model
+                ]
+            )
 
 
 viewHeader =
@@ -517,6 +550,19 @@ viewKeyboardRow : Model -> List Keyboard -> Element Msg
 viewKeyboardRow model keys =
     row [ spacing 5, centerX ]
         (List.map (viewMakeButton model) keys)
+
+
+
+-- Show pop-up
+
+
+viewEndGame : Model -> Element Msg
+viewEndGame model =
+    if isGameWon model then
+        el [ centerX, centerY ] (text "You won!")
+
+    else
+        el [ centerX, centerY ] (text "You lose!")
 
 
 
