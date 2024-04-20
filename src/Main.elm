@@ -11,11 +11,17 @@ import Element.Font as Font
 import Html exposing (Html)
 import Html.Events
 import Json.Decode as Decode
+import Parole exposing (getSecretWord, isParola)
 import Word exposing (..)
 
 
 main =
-    Browser.element { init = init, update = update, view = view, subscriptions = subscriptions }
+    Browser.element
+        { init = init
+        , update = update
+        , view = view
+        , subscriptions = subscriptions
+        }
 
 
 type alias Model =
@@ -29,7 +35,7 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( { guesses = []
       , current = []
-      , solution = testSolution
+      , solution = String.toList getSecretWord
       }
     , Cmd.none
     )
@@ -44,6 +50,9 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
+        currentGuess =
+            String.fromList model.current
+
         currentGuessLen =
             List.length model.current
     in
@@ -60,6 +69,9 @@ update msg model =
         Confirm ->
             -- Confirmation can happen only if guess has length 5
             if currentGuessLen < 5 then
+                model
+
+            else if not (isParola currentGuess) then
                 model
 
             else
@@ -211,10 +223,6 @@ viewGridArea model =
 
 emptyTile =
     EmptyTile
-
-
-testSolution =
-    [ 'B', 'U', 'F', 'F', 'A' ]
 
 
 emptyWord =
