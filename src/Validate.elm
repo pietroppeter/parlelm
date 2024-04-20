@@ -1,8 +1,14 @@
-module Validate exposing (getSecretWord, isParola)
+module Validate exposing (daysSinceStart, getSecretWord, isParola)
 
 import Array
 import Debug
-import Parole exposing (parole, segrete)
+import Parole exposing (inizio, parole, segrete)
+import Time
+import Time.Extra exposing (Interval(..), diff)
+
+
+daysSinceStart timestamp =
+    diff Day Time.utc inizio timestamp
 
 
 secrets =

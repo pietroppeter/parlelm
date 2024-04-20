@@ -11,9 +11,10 @@ import Element.Font as Font
 import Html exposing (Html)
 import Html.Events
 import Json.Decode as Decode
+import Parole
 import Task
 import Time exposing (Month(..))
-import Validate exposing (getSecretWord, isParola)
+import Validate exposing (daysSinceStart, getSecretWord, isParola)
 import Word exposing (..)
 
 
@@ -196,22 +197,34 @@ viewHeader model =
         , Border.color (rgb255 255 0 0)
         , Border.widthEach { top = 0, bottom = 1, left = 0, right = 0 }
         ]
-        [ viewHeaderBurger
+        [ viewHeaderBurger model
         , viewHeaderDate model
         , viewHeaderTime model
         ]
 
 
-viewHeaderBurger =
-    el [ alignLeft, bgPink ] (text "Burger")
+viewHeaderBurger model =
+    el [ alignLeft, bgPink ]
+        (text <|
+            String.fromInt <|
+                daysSinceStart model.timestamp
+        )
 
 
 viewHeaderDate model =
-    el [ centerX, bgYell ] (text <| toUtcDate model.timestamp)
+    let
+        date =
+            model.timestamp
+    in
+    el [ centerX, bgYell ] (text <| toUtcDate date)
 
 
 viewHeaderTime model =
-    el [ alignRight, bgPink ] (text <| toUtcTime model.timestamp)
+    let
+        date =
+            model.timestamp
+    in
+    el [ alignRight, bgPink ] (text <| toUtcTime date)
 
 
 toUtcTime : Time.Posix -> String

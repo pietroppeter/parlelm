@@ -1,4 +1,11 @@
-module Parole exposing (parole, segrete)
+module Parole exposing (inizio, parole, segrete)
+
+import Time
+
+
+inizio =
+    -- 2022-01-03 00:00:00
+    Time.millisToPosix 1641168000000
 
 
 parole =
