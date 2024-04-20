@@ -11,7 +11,7 @@ import Element.Font as Font
 import Html exposing (Html)
 import Html.Events
 import Json.Decode as Decode
-import Parole exposing (getSecretWord, isParola)
+import Validate exposing (getSecretWord, isParola)
 import Word exposing (..)
 
 
