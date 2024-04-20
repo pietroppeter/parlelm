@@ -176,29 +176,22 @@ isGameWon model =
 
 view : Model -> Html Msg
 view model =
-    if isGameEnded model then
-        layout [ width fill, height fill ]
-            (column [ width (fill |> maximum 500), height fill, centerX, bgCyan ]
-                [ viewHeader model
-                , viewEndGame model
-                ]
-            )
-
-    else
-        layout [ width fill, height fill ]
-            (column [ width (fill |> maximum 500), height fill, centerX, bgCyan ]
-                [ viewHeader model
-                , viewGridArea model
-                , viewKeyboardArea model
-                ]
-            )
+    layout [ width fill, height fill ]
+        (column [ width (fill |> maximum 500), height fill, centerX, bgCyan ]
+            [ viewHeader model
+            , viewGridArea model
+            , viewEndGame model
+            , viewKeyboardArea model
+            ]
+        )
 
 
 viewHeader model =
     row
         [ width fill
-        , Border.color (rgb255 255 0 0)
-        , Border.widthEach { top = 0, bottom = 1, left = 0, right = 0 }
+
+        --, Border.color (rgb255 255 0 0)
+        --, Border.widthEach { top = 0, bottom = 1, left = 0, right = 0 }
         ]
         [ viewHeaderBurger model
         , viewHeaderDate model
@@ -301,7 +294,7 @@ type Tile
 
 viewGridArea : Model -> Element Msg
 viewGridArea model =
-    el [ bgYell, width fill, height (fillPortion 2) ] (viewGrid model)
+    el [ bgYell, width fill, height (fillPortion 8) ] (viewGrid model)
 
 
 emptyTile =
@@ -423,7 +416,7 @@ tileFontColor match =
             colorWhite
 
         Present _ ->
-            colorWhite
+            colorBlack
 
         Unknown _ ->
             colorWhite
@@ -499,7 +492,7 @@ type Keyboard
 
 viewKeyboardArea : Model -> Element Msg
 viewKeyboardArea model =
-    el [ bgPink, width fill, height (fillPortion 1) ] (viewKeyboard model)
+    el [ bgPink, width fill, height (fillPortion 4) ] (viewKeyboard model)
 
 
 viewKeyboard : Model -> Element Msg
@@ -630,6 +623,9 @@ viewMakeButton : Model -> Keyboard -> Element Msg
 viewMakeButton model k =
     el
         [ buttonColor model k
+
+        -- , tileFontColor TILE
+        -- , tileBgColor TILE
         , height (px 58)
         , width (px (viewKeyWidth k))
         , viewKeyEvent k
@@ -649,11 +645,22 @@ viewKeyboardRow model keys =
 
 viewEndGame : Model -> Element Msg
 viewEndGame model =
-    if isGameWon model then
-        el [ centerX, centerY ] (text "You won!")
+    el
+        [ centerX
+        , centerY
+        , height (fillPortion 1)
+        , Font.size 32
+        ]
+        (if isGameEnded model then
+            if isGameWon model then
+                text "🎉"
 
-    else
-        el [ centerX, centerY ] (text "You lose!")
+            else
+                text "🥺"
+
+         else
+            text ""
+        )
 
 
 
@@ -661,27 +668,31 @@ viewEndGame model =
 
 
 colorGray =
-    rgb255 211 214 218
+    rgb255 212 212 212
 
 
 colorDarkGray =
-    rgb255 134 136 138
+    rgb255 88 67 85
 
 
 colorWhite =
-    rgb255 255 255 255
+    rgb255 255 251 232
 
 
 colorBlack =
-    rgb255 33 33 33
+    rgb255 21 21 21
 
 
 colorGreen =
-    rgb255 106 170 100
+    rgb255 128 0 128
 
 
 colorYellow =
-    rgb255 181 159 59
+    rgb255 255 223 0
+
+
+colorGleam =
+    rgb255 255 175 243
 
 
 bgGray =
@@ -693,7 +704,7 @@ bgDarkGray =
 
 
 bgWhite =
-    Background.color colorWhite
+    Background.color colorGleam
 
 
 bgGreen =
@@ -709,15 +720,15 @@ bgYellow =
 
 
 bgYell =
-    Background.color (rgb255 255 255 240)
+    Background.color colorWhite
 
 
 bgCyan =
-    Background.color (rgb255 240 255 255)
+    Background.color colorWhite
 
 
 bgPink =
-    Background.color (rgb255 255 240 240)
+    Background.color colorWhite
 
 
 
