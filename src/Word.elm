@@ -5,9 +5,10 @@ import Test exposing (Test, describe, test)
 
 
 type MatchedChar
-    = Missing Char --grey
-    | Exact Char --green
-    | Present Char --yellow
+    = Missing Char -- dark grey
+    | Exact Char -- green
+    | Present Char -- yellow
+    | Unknown Char -- light gray
 
 
 toMatched : List Char -> List Char -> List MatchedChar
@@ -113,7 +114,7 @@ rematch guess solution =
                         ( Missing _, newState ) ->
                             Missing g :: matchGuessChars (i + 1) gs newState target
 
-                        ( Present _, newState ) ->
+                        ( _, newState ) ->
                             Present g :: matchGuessChars (i + 1) gs newState target
     in
     matchGuessChars 0 guess equalChars solution

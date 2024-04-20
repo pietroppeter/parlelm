@@ -259,6 +259,9 @@ tileBgColor tile =
                 Present _ ->
                     bgYellow
 
+                Unknown _ ->
+                    bgGray
+
         UncheckedTile _ ->
             bgWhite
 
@@ -279,6 +282,9 @@ tileBorderColor tile =
                 Present _ ->
                     colorYellow
 
+                Unknown _ ->
+                    colorGray
+
         UncheckedTile _ ->
             colorDarkGray
 
@@ -295,6 +301,9 @@ tileFontColor match =
         Present _ ->
             colorWhite
 
+        Unknown _ ->
+            colorWhite
+
 
 tileChar : MatchedChar -> Char
 tileChar match =
@@ -306,6 +315,9 @@ tileChar match =
             c
 
         Present c ->
+            c
+
+        Unknown c ->
             c
 
 
@@ -408,22 +420,17 @@ viewKeyEvent k =
             Ev.onClick Confirm
 
 
-
--- bestLetterColor : Model -> Char -> Element.Attr d m
-
-
+bestLetterColor : Model -> Char -> MatchedChar
 bestLetterColor model char =
     let
+        -- Given a matched character and a previous status, improves the status
+        -- with the new information acquired
         improve : MatchedChar -> MatchedChar -> MatchedChar
         improve ch st =
             case ch of
-                Missing c ->
-                    -- We cannot improve with another missing char, leave state as is
-                    st
-
                 Exact c ->
                     if c == char then
-                        -- If we find an exact match, that's the best possible
+                        -- If we find an exact guess, that's the best possible
                         Exact char
 
                     else
@@ -432,9 +439,26 @@ bestLetterColor model char =
 
                 Present c ->
                     if c == char then
+                        -- The character is present somewhere, if the presence
+                        -- status was unknown, we can improve on it
                         case st of
-                            Missing _ ->
+                            Unknown _ ->
                                 Present char
+
+                            _ ->
+                                -- Cannot improve if it's missing or exact
+                                st
+
+                    else
+                        st
+
+                Missing c ->
+                    if c == char then
+                        -- The character is missing somewhere, if the presence
+                        -- status was unknown, we can improve on it
+                        case st of
+                            Unknown _ ->
+                                Missing char
 
                             _ ->
                                 st
@@ -442,11 +466,14 @@ bestLetterColor model char =
                     else
                         st
 
-        -- Initially, we say that char is missing
+                Unknown c ->
+                    -- Cannot improve with no information
+                    st
+
+        -- Initially, we say that char is unknown
         initialState =
-            Missing char
+            Unknown char
     in
-    -- bgYell
     List.foldl improve initialState (List.concat model.guesses)
 
 
@@ -454,13 +481,14 @@ bestLetterColor model char =
 -- Returns the color of a keyboard button depending on matching of past guesses
 
 
+buttonColor : Model -> Keyboard -> Attr d m
 buttonColor model k =
     -- TODO the color is the "best" match found so far for a letter: if C is
     -- Present in the first guess (yellow) and Exact in the second guess (green)
     -- the C key should be colored green.
     case k of
         Key ch ->
-            tileBgColor (FilledTile (bestLetterColor model ch))
+            tileBgColor (FilledTile (bestLetterColor model (Debug.log "check color del bottone" ch)))
 
         KeyBackspace ->
             bgCyan
