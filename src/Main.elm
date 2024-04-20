@@ -39,10 +39,10 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( { guesses = []
       , current = []
-      , solution = String.toList getSecretWord
+      , solution = [ 'A', 'M', 'I', 'C', 'Y' ]
       , timestamp = Time.millisToPosix 0
       }
-    , Task.perform DammiOra Time.now
+    , Task.perform QueryTime Time.now
     )
 
 
@@ -50,7 +50,7 @@ type Msg
     = KeyPressed Char
     | Backspace
     | Confirm
-    | DammiOra Time.Posix
+    | QueryTime Time.Posix
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -87,8 +87,11 @@ update msg model =
             -- Remove last character from current, as long as it's not empty
             Debug.log "Chomped" { model | current = List.take (currentGuessLen - 1) model.current }
 
-        DammiOra t ->
-            { model | timestamp = t }
+        QueryTime t ->
+            { model
+                | timestamp = t
+                , solution = String.toList (getSecretWord t)
+            }
     , Cmd.none
     )
 
