@@ -11,6 +11,8 @@ import Element.Font as Font
 import Html exposing (Html)
 import Html.Events
 import Json.Decode as Decode
+import Task
+import Time exposing (Month(..))
 import Validate exposing (getSecretWord, isParola)
 import Word exposing (..)
 
@@ -28,6 +30,7 @@ type alias Model =
     { guesses : List (List MatchedChar)
     , current : List Char
     , solution : List Char
+    , timestamp : Time.Posix
     }
 
 
@@ -36,8 +39,9 @@ init _ =
     ( { guesses = []
       , current = []
       , solution = String.toList getSecretWord
+      , timestamp = Time.millisToPosix 0
       }
-    , Cmd.none
+    , Task.perform DammiOra Time.now
     )
 
 
@@ -45,6 +49,7 @@ type Msg
     = KeyPressed Char
     | Backspace
     | Confirm
+    | DammiOra Time.Posix
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -80,6 +85,9 @@ update msg model =
         Backspace ->
             -- Remove last character from current, as long as it's not empty
             Debug.log "Chomped" { model | current = List.take (currentGuessLen - 1) model.current }
+
+        DammiOra t ->
+            { model | timestamp = t }
     , Cmd.none
     )
 
@@ -167,7 +175,7 @@ view model =
     if isGameEnded model then
         layout [ width fill, height fill ]
             (column [ width (fill |> maximum 500), height fill, centerX, bgCyan ]
-                [ viewHeader
+                [ viewHeader model
                 , viewEndGame model
                 ]
             )
@@ -175,22 +183,22 @@ view model =
     else
         layout [ width fill, height fill ]
             (column [ width (fill |> maximum 500), height fill, centerX, bgCyan ]
-                [ viewHeader
+                [ viewHeader model
                 , viewGridArea model
                 , viewKeyboardArea model
                 ]
             )
 
 
-viewHeader =
+viewHeader model =
     row
         [ width fill
         , Border.color (rgb255 255 0 0)
         , Border.widthEach { top = 0, bottom = 1, left = 0, right = 0 }
         ]
         [ viewHeaderBurger
-        , viewHeaderTitle
-        , viewHeaderButton
+        , viewHeaderDate model
+        , viewHeaderTime model
         ]
 
 
@@ -198,12 +206,71 @@ viewHeaderBurger =
     el [ alignLeft, bgPink ] (text "Burger")
 
 
-viewHeaderTitle =
-    el [ centerX, bgYell ] (text "Title")
+viewHeaderDate model =
+    el [ centerX, bgYell ] (text <| toUtcDate model.timestamp)
 
 
-viewHeaderButton =
-    el [ alignRight, bgPink ] (text "Button")
+viewHeaderTime model =
+    el [ alignRight, bgPink ] (text <| toUtcTime model.timestamp)
+
+
+toUtcTime : Time.Posix -> String
+toUtcTime time =
+    String.fromInt (Time.toHour Time.utc time)
+        ++ ":"
+        ++ String.fromInt (Time.toMinute Time.utc time)
+        ++ ":"
+        ++ String.fromInt (Time.toSecond Time.utc time)
+        ++ " (UTC)"
+
+
+toUtcDate : Time.Posix -> String
+toUtcDate time =
+    String.fromInt (Time.toYear Time.utc time)
+        ++ "-"
+        ++ toMonthNumber (Time.toMonth Time.utc time)
+        ++ "-"
+        ++ String.fromInt (Time.toDay Time.utc time)
+
+
+toMonthNumber : Time.Month -> String
+toMonthNumber month =
+    case month of
+        Jan ->
+            "01"
+
+        Feb ->
+            "02"
+
+        Mar ->
+            "03"
+
+        Apr ->
+            "04"
+
+        May ->
+            "05"
+
+        Jun ->
+            "06"
+
+        Jul ->
+            "07"
+
+        Aug ->
+            "08"
+
+        Sep ->
+            "09"
+
+        Oct ->
+            "10"
+
+        Nov ->
+            "11"
+
+        Dec ->
+            "12"
 
 
 
