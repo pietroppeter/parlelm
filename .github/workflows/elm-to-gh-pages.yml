@@ -37,17 +37,13 @@ jobs:
           elm-version: 0.19.1
       - run: elm make src/Main.elm --output=static/main.js
 
-      - name: Pack values to upload
-        shell: sh
-        run: tar --directory static -cvf ../artifact.tar .
-
       - name: Setup Pages
         uses: actions/configure-pages@v3
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: 'artifact.tar'
+          path: 'static'
 
       - name: Deploy to GitHub Pages
         id: deployment
