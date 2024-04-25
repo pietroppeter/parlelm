@@ -5,7 +5,7 @@ that might be inspired to something mentioned in this [article](https://www.404m
 
 goal is to have in production version that can replace this (with changes in the UI, e.g. color changes) https://github.com/pietroppeter/wordle-it
 
-we still have to complete the MVP, these are some 
+we still have to complete the MVP, these are some
 ideas for additional features
 - play a past game
 - history of all your past games
@@ -16,6 +16,14 @@ Shared project by @pietroppeter (beginner in Elm and functional languages) and @
 
 We also tried (on the first meetup) to have a NixOS based Elm setup with help by @kristoff-it but it did not work out.
 In the end it is actually very simple to just setup elm with the installer.
+
+## Building
+
+Then serve the `static` folder
+
+```
+elm make src/Main.elm --output=static/main.js
+```
 
 ## tests
 
